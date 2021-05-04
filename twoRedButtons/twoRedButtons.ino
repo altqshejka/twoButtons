@@ -1,27 +1,35 @@
 #include <TroykaOLED.h>
 TroykaOLED myOLED(0x3C);
-int value_X, value_Y;
 long int timer;
 long int last_press;
 byte last_mode = 2;
 byte last_pos;
 byte pos = 6;
 byte mode = 1;
+int button1Pin=7;
+int button2Pin=8;
+int nextButton=4;
+int tumblerpin=2;
+int sbrospin=11;
+int fplayer=6;
+int splayer=0;
+int led1pin=9;
+int led2pin=10;
 String answer = "привет";
 void setup() {
   myOLED.begin();
   myOLED.clearDisplay();
   myOLED.setCoding(Encoding::UTF8);
-  pinMode(0, INPUT_PULLUP);
-  pinMode(2, INPUT_PULLUP);
-  pinMode(4, INPUT_PULLUP);
+  pinMode(splayer, INPUT_PULLUP);
+  pinMode(tumblerpin, INPUT_PULLUP);
+  pinMode(nextButton, INPUT_PULLUP);
  // pinMode(5, INPUT_PULLUP);
-  pinMode(6, INPUT_PULLUP);
-  pinMode(7, INPUT_PULLUP);
-  pinMode(8, INPUT_PULLUP);
-  pinMode(11, INPUT_PULLUP);
-  pinMode(9, OUTPUT);
-  pinMode(10, OUTPUT);
+  pinMode(tumblerpin, INPUT_PULLUP);
+  pinMode(button1Pin, INPUT_PULLUP);
+  pinMode(button2Pin, INPUT_PULLUP);
+  pinMode(sbrospin, INPUT_PULLUP);
+  pinMode(led1pin, OUTPUT);
+  pinMode(led2pin, OUTPUT);
   Serial.begin(9600);
   timer = millis();
 }
@@ -32,7 +40,7 @@ void loop() {
         myOLED.setFont(font12x10);
         myOLED.print(answer, OLED_CENTER, 20);
       }
-  //byte mode = digitalRead(6);
+  //byte mode = digitalRead(tumblerpin);
   if (mode == 0) {
     if (last_mode != mode)
     {
@@ -42,9 +50,9 @@ void loop() {
     }
     value_X = analogRead(1);
     value_Y = analogRead(0);
-    int sensorVal = digitalRead(7);
-    int sensorVal1 = digitalRead(8);
-    int sbros = digitalRead(6);
+    int sensorVal = digitalRead(button1Pin);
+    int sensorVal1 = digitalRead(button2Pin);
+    int sbros = digitalRead(sbrospin);
     if (value_Y > 600 && value_X < 600 && value_X > 200) pos = 1;
     else if (digitalRead(2) == LOW) pos = 2;
     else if (value_X > 600 && value_Y < 600 && value_Y > 200) pos = 3;
@@ -76,28 +84,28 @@ void loop() {
       Serial.println("second player");
     }
     if (sensorVal == sensorVal1) {
-      digitalWrite(9, LOW);
-      digitalWrite(10, LOW);
+      digitalWrite(led1pin, LOW);
+      digitalWrite(led2pin, LOW);
     }
     else if (sensorVal == LOW && sensorVal1 == HIGH) {
       Serial.println("button=1"); //нажата первая кнопка
       while (sbros != LOW) {
-        digitalWrite(10, HIGH);
-        digitalWrite(9, LOW);
-        sbros = digitalRead(11);
+        digitalWrite(led2pin, HIGH);
+        digitalWrite(led1pin, LOW);
+        sbros = digitalRead(sbrospin);
       }
       Serial.println("sbros"); //нажата кнопка сброса
-      digitalWrite(10, LOW);
+      digitalWrite(led2pin, LOW);
     }
     else if (sensorVal == HIGH && sensorVal1 == LOW) {
       Serial.println("button=2");//нажата вторая кнопка
       while (sbros != LOW) {
-        digitalWrite(10, LOW);
-        digitalWrite(9, HIGH);
-        sbros = digitalRead(11);
+        digitalWrite(led2pin, LOW);
+        digitalWrite(led1pin, HIGH);
+        sbros = digitalRead(sbrospin);
       }
       Serial.println("sbros");//нажата кнопка сброса
-      digitalWrite(9, LOW);
+      digitalWrite(led1pin, LOW);
     }
   }
   else if (mode == 1)
@@ -107,11 +115,11 @@ void loop() {
       Serial.print("mode=");
       Serial.println(mode);
     }
-    int sensorVal = digitalRead(7);
-    int sensorVal1 = digitalRead(8);
-    if (digitalRead(4) == LOW) pos = 1;
-    else if (digitalRead(6) == LOW) pos = 2;
-    else if (digitalRead(0) == LOW) pos = 3;
+    int sensorVal = digitalRead(button1Pin);
+    int sensorVal1 = digitalRead(button2Pin);
+    if (digitalRead(nextButton) == LOW) pos = 1;
+    else if (digitalRead(fplayer) == LOW) pos = 2;
+    else if (digitalRead(splayer) == LOW) pos = 3;
     if (pos == 1 && pos != last_pos) //положение джойстика для перехода к следующему вопросу
     {
       last_pos = pos;
@@ -138,28 +146,28 @@ void loop() {
       pos=4;
     }
     if (sensorVal == sensorVal1) {
-      digitalWrite(9, LOW);
-      digitalWrite(10, LOW);
+      digitalWrite(led1pin, LOW);
+      digitalWrite(led2pin, LOW);
     }
     else if (sensorVal == LOW && sensorVal1 == HIGH) {
       last_press = millis();
       Serial.println("button=1"); //нажата первая кнопка
-      while (timer - last_press < 3000 && digitalRead(6)!=LOW && digitalRead(0)!=LOW) {
-        digitalWrite(10, HIGH);
-        digitalWrite(9, LOW);
+      while (timer - last_press < 3000 && digitalRead(fplayer)!=LOW && digitalRead(splayer)!=LOW) {
+        digitalWrite(led2pin, HIGH);
+        digitalWrite(led1pin, LOW);
         timer = millis();
       }
-      digitalWrite(10, LOW);
+      digitalWrite(led2pin, LOW);
     }
     else if (sensorVal == HIGH && sensorVal1 == LOW) {
       last_press = millis();
       Serial.println("button=2");//нажата вторая кнопка
-      while (timer - last_press < 3000 && digitalRead(6)!=LOW  && digitalRead(0)!=LOW) {
-        digitalWrite(10, LOW);
-        digitalWrite(9, HIGH);
+      while (timer - last_press < 3000 && digitalRead(fplayer)!=LOW  && digitalRead(splayer)!=LOW) {
+        digitalWrite(led2pin, LOW);
+        digitalWrite(led1pin, HIGH);
         timer = millis();
       }
-      digitalWrite(9, LOW);
+      digitalWrite(led1pin, LOW);
     }
   }
 }
